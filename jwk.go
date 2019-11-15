@@ -35,6 +35,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3/json"
 )
 
@@ -513,6 +514,8 @@ func (key rawJSONWebKey) ecPublicKey() (*ecdsa.PublicKey, error) {
 	switch key.Crv {
 	case "P-256":
 		curve = elliptic.P256()
+	case "secp256k1": // https://tools.ietf.org/html/draft-ietf-cose-webauthn-algorithms-03
+		curve = secp256k1.S256()
 	case "P-384":
 		curve = elliptic.P384()
 	case "P-521":
@@ -690,6 +693,8 @@ func (key rawJSONWebKey) ecPrivateKey() (*ecdsa.PrivateKey, error) {
 	switch key.Crv {
 	case "P-256":
 		curve = elliptic.P256()
+	case "secp256k1": // https://tools.ietf.org/html/draft-ietf-cose-webauthn-algorithms-03
+		curve = secp256k1.S256()
 	case "P-384":
 		curve = elliptic.P384()
 	case "P-521":

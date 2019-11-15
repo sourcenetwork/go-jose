@@ -157,7 +157,7 @@ func newECDHRecipient(keyAlg KeyAlgorithm, publicKey *ecdsa.PublicKey) (recipien
 func newECDSASigner(sigAlg SignatureAlgorithm, privateKey *ecdsa.PrivateKey) (recipientSigInfo, error) {
 	// Verify that key management algorithm is supported by this encrypter
 	switch sigAlg {
-	case ES256, ES384, ES512:
+	case ES256, ES256K, ES384, ES512:
 	default:
 		return recipientSigInfo{}, ErrUnsupportedAlgorithm
 	}
@@ -503,7 +503,7 @@ func (ctx ecDecrypterSigner) signPayload(payload []byte, alg SignatureAlgorithm)
 	var hash crypto.Hash
 
 	switch alg {
-	case ES256:
+	case ES256, ES256K:
 		expectedBitSize = 256
 		hash = crypto.SHA256
 	case ES384:
@@ -560,7 +560,7 @@ func (ctx ecEncrypterVerifier) verifyPayload(payload []byte, signature []byte, a
 	var hash crypto.Hash
 
 	switch alg {
-	case ES256:
+	case ES256, ES256K:
 		keySize = 32
 		hash = crypto.SHA256
 	case ES384:

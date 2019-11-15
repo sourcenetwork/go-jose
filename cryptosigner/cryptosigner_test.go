@@ -30,11 +30,12 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3"
 )
 
 func TestRoundtripsJWSCryptoSigner(t *testing.T) {
-	sigAlgs := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
+	sigAlgs := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES256K, jose.ES384, jose.ES512, jose.EdDSA}
 
 	serializers := []func(*jose.JSONWebSignature) (string, error){
 		func(obj *jose.JSONWebSignature) (string, error) { return obj.CompactSerialize() },
@@ -123,6 +124,10 @@ func generateSigningTestKey(sigAlg jose.SignatureAlgorithm) (sig, ver interface{
 		ver = &rsaTestKey.PublicKey
 	case jose.ES256:
 		key, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		sig = key
+		ver = &key.PublicKey
+	case jose.ES256K:
+		key, _ := ecdsa.GenerateKey(secp256k1.S256(), rand.Reader)
 		sig = key
 		ver = &key.PublicKey
 	case jose.ES384:

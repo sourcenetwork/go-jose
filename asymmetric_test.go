@@ -342,6 +342,10 @@ func TestInvalidEllipticCurve(t *testing.T) {
 	if err == nil {
 		t.Error("should not generate ES256 signature with P-384 key")
 	}
+	_, err = signer384.signPayload([]byte{}, ES256K)
+	if err == nil {
+		t.Error("should not generate ES256K signature with P-384 key")
+	}
 	_, err = signer384.signPayload([]byte{}, ES512)
 	if err == nil {
 		t.Error("should not generate ES512 signature with P-384 key")
@@ -349,6 +353,10 @@ func TestInvalidEllipticCurve(t *testing.T) {
 	_, err = signer521.signPayload([]byte{}, ES256)
 	if err == nil {
 		t.Error("should not generate ES256 signature with P-521 key")
+	}
+	_, err = signer521.signPayload([]byte{}, ES256K)
+	if err == nil {
+		t.Error("should not generate ES256K signature with P-521 key")
 	}
 	_, err = signer521.signPayload([]byte{}, ES384)
 	if err == nil {
