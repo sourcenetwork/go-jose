@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3/json"
 )
 
@@ -184,6 +185,10 @@ func newVerifier(verificationKey interface{}) (payloadVerifier, error) {
 		return &ecEncrypterVerifier{
 			publicKey: verificationKey,
 		}, nil
+	case *secp256k1.PublicKey:
+		return &ecEncrypterVerifier{
+			publicKey: verificationKey.ToECDSA(),
+		}, nil
 	case []byte:
 		return &symmetricMac{
 			key: verificationKey,
@@ -217,6 +222,8 @@ func makeJWSRecipient(alg SignatureAlgorithm, signingKey interface{}) (recipient
 		return newRSASigner(alg, signingKey)
 	case *ecdsa.PrivateKey:
 		return newECDSASigner(alg, signingKey)
+	case *secp256k1.PrivateKey:
+		return newSecp256k1Signer(alg, signingKey)
 	case []byte:
 		return newSymmetricSigner(alg, signingKey)
 	case JSONWebKey:

@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	josecipher "github.com/go-jose/go-jose/v3/cipher"
 	"github.com/go-jose/go-jose/v3/json"
 )
@@ -66,6 +67,10 @@ type ecDecrypterSigner struct {
 
 type edDecrypterSigner struct {
 	privateKey ed25519.PrivateKey
+}
+
+type spDecrypterSigner struct {
+	privateKey *secp256k1.PrivateKey
 }
 
 // newRSARecipient creates recipientKeyInfo based on the given key.
@@ -173,6 +178,30 @@ func newECDSASigner(sigAlg SignatureAlgorithm, privateKey *ecdsa.PrivateKey) (re
 		}),
 		signer: &ecDecrypterSigner{
 			privateKey: privateKey,
+		},
+	}, nil
+}
+
+// newECDSASigner creates a recipientSigInfo based on the given key.
+func newSecp256k1Signer(sigAlg SignatureAlgorithm, privateKey *secp256k1.PrivateKey) (recipientSigInfo, error) {
+	// Verify that key management algorithm is supported by this encrypter
+	switch sigAlg {
+	case ES256K:
+	default:
+		return recipientSigInfo{}, ErrUnsupportedAlgorithm
+	}
+
+	if privateKey == nil {
+		return recipientSigInfo{}, errors.New("invalid private key")
+	}
+
+	return recipientSigInfo{
+		sigAlg: sigAlg,
+		publicKey: staticPublicKey(&JSONWebKey{
+			Key: privateKey.PubKey(),
+		}),
+		signer: &ecDecrypterSigner{
+			privateKey: privateKey.ToECDSA(),
 		},
 	}, nil
 }
@@ -485,6 +514,23 @@ func (ctx edDecrypterSigner) signPayload(payload []byte, alg SignatureAlgorithm)
 		protected: &rawHeader{},
 	}, nil
 }
+
+// func (ctx spDecrypterSigner) signPayload(payload []byte, alg SignatureAlgorithm) (Signature, error) {
+// 	if alg != ES256K {
+// 		return Signature{}, ErrUnsupportedAlgorithm
+// 	}
+
+// 	ctx.privateKey
+// 	sig, err := ctx.privateKey.Sign(RandReader, payload, crypto.Hash(0))
+// 	if err != nil {
+// 		return Signature{}, err
+// 	}
+
+// 	return Signature{
+// 		Signature: sig,
+// 		protected: &rawHeader{},
+// 	}, nil
+// }
 
 func (ctx edEncrypterVerifier) verifyPayload(payload []byte, signature []byte, alg SignatureAlgorithm) error {
 	if alg != EdDSA {
